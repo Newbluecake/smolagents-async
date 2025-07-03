@@ -22,6 +22,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pytest
+import asyncio
 
 from smolagents.default_tools import BASE_PYTHON_TOOLS, FinalAnswerTool
 from smolagents.local_python_executor import (
@@ -35,6 +36,7 @@ from smolagents.local_python_executor import (
     evaluate_condition,
     evaluate_delete,
     evaluate_python_code,
+    async_evaluate_python_code,
     evaluate_subscript,
     fix_final_answer_code,
     get_safe_module,
@@ -68,6 +70,25 @@ class TestEvaluatePythonCode:
 
         code = "a=1;b=None"
         result, _ = evaluate_python_code(code, {}, state={})
+        # evaluate returns the value of the last assignment.
+        assert result is None
+    
+    def test_evaluate_assign_async(self):
+        code = "x = 3"
+        state = {}
+        result, _ = asyncio.run(async_evaluate_python_code(code, {}, state=state))
+        assert result == 3
+        self.assertDictEqualNoPrint(state, {"x": 3, "_operations_count": {"counter": 2}})
+
+        code = "x = y"
+        state = {"y": 5}
+        result, _ = asyncio.run(async_evaluate_python_code(code, {}, state=state))
+        # evaluate returns the value of the last assignment.
+        assert result == 5
+        self.assertDictEqualNoPrint(state, {"x": 5, "y": 5, "_operations_count": {"counter": 2}})
+
+        code = "a=1;b=None"
+        result, _ = asyncio.run(async_evaluate_python_code(code, {}, state={}))
         # evaluate returns the value of the last assignment.
         assert result is None
 
@@ -427,6 +448,11 @@ print(check_digits)
     def test_lambda(self):
         code = "f = lambda x: x + 2\nf(3)"
         result, _ = evaluate_python_code(code, {}, state={})
+        assert result == 5
+
+    def test_lambda_async(self):
+        code = "f = lambda x: x + 2\nf(3)"
+        result, _ = asyncio.run(async_evaluate_python_code(code, {}, state={}))
         assert result == 5
 
     def test_dictcomp(self):
