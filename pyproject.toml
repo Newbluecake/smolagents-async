@@ -3,9 +3,9 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "smolagents"
-version = "1.19.0"
-description = "🤗 smolagents: a barebones library for agents. Agents write python code to call tools or orchestrate other agents."
+name = "smolagents-async"
+version = "1.19.1"
+description = "🤗 smolagents-async: a clone of smolagents which supports asyncio."
 authors = [
   { name="Aymeric Roucher", email="aymeric@hf.co" },
 ]
@@ -128,3 +128,8 @@ lines-after-imports = 2
 [project.scripts]
 smolagent = "smolagents.cli:main"
 webagent = "smolagents.vision_web_browser:main"
+
+[project.urls]
+"Homepage" = "https://github.com/Newbluecake/smolagents-async"
+"Source" = "https://github.com/Newbluecake/smolagents-async"
+"Bug Tracker" = "https://github.com/Newbluecake/smolagents-async/issues"
