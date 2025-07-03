@@ -1397,7 +1397,11 @@ async def async_evaluate_call(
             raise InterpreterError(
                 f"Invoking a builtin function that has not been explicitly added as a tool is not allowed ({func_name})."
             )
-        return await func(*args, **kwargs)
+        
+        if hasattr(func, "acall"):
+            return await func.acall(*args, **kwargs)
+        else:
+            return func(*args, **kwargs)
 
 
 def evaluate_subscript(

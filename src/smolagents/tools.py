@@ -187,6 +187,9 @@ class Tool:
 
     def forward(self, *args, **kwargs):
         return NotImplementedError("Write this method in your subclass of `Tool`.")
+    
+    def aforward(self, *args, **kwargs):
+        return NotImplementedError("Write this method in your subclass of `Tool`.")
 
     def __call__(self, *args, sanitize_inputs_outputs: bool = False, **kwargs):
         if not self.is_initialized:
@@ -204,6 +207,26 @@ class Tool:
         if sanitize_inputs_outputs:
             args, kwargs = handle_agent_input_types(*args, **kwargs)
         outputs = self.forward(*args, **kwargs)
+        if sanitize_inputs_outputs:
+            outputs = handle_agent_output_types(outputs, self.output_type)
+        return outputs
+    
+    async def acall(self, *args, sanitize_inputs_outputs: bool = False, **kwargs):
+        if not self.is_initialized:
+            self.setup()
+
+        # Handle the arguments might be passed as a single dictionary
+        if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], dict):
+            potential_kwargs = args[0]
+
+            # If the dictionary keys match our input parameters, convert it to kwargs
+            if all(key in self.inputs for key in potential_kwargs):
+                args = ()
+                kwargs = potential_kwargs
+
+        if sanitize_inputs_outputs:
+            args, kwargs = handle_agent_input_types(*args, **kwargs)
+        outputs = await self.aforward(*args, **kwargs)
         if sanitize_inputs_outputs:
             outputs = handle_agent_output_types(outputs, self.output_type)
         return outputs
