@@ -2503,11 +2503,13 @@ async def async_evaluate_ast(
     elif isinstance(expression, ast.Lambda):
         return evaluate_async_lambda(expression, *common_params)
     elif isinstance(expression, ast.FunctionDef):
+        return evaluate_function_def(expression, *common_params)
+    elif isinstance(expression, ast.AsyncFunctionDef):
         return evaluate_async_function_def(expression, *common_params)
     elif isinstance(expression, ast.Dict):
         # Dict -> evaluate all keys and values
-        keys = (await async_evaluate_ast(k, *common_params) for k in expression.keys)
-        values = (await async_evaluate_ast(v, *common_params) for v in expression.values)
+        keys = [await async_evaluate_ast(k, *common_params) for k in expression.keys]
+        values = [await async_evaluate_ast(v, *common_params) for v in expression.values]
         return dict(zip(keys, values))
     elif isinstance(expression, ast.Expr):
         # Expression -> evaluate the content
