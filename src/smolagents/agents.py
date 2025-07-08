@@ -1674,6 +1674,7 @@ class CodeAgent(MultiStepAgent):
             <Deprecated version="1.17.0">
             Parameter `grammar` is deprecated and will be removed in version 1.20.
             </Deprecated>
+        live_render (`bool`, *optional*, default `False`): Whether to render the stream outputs as markdown format.
         **kwargs: Additional keyword arguments.
     """
 
@@ -1690,12 +1691,14 @@ class CodeAgent(MultiStepAgent):
         stream_outputs: bool = False,
         use_structured_outputs_internally: bool = False,
         grammar: dict[str, str] | None = None,
+        live_render: bool = False,
         **kwargs,
     ):
         self.additional_authorized_imports = additional_authorized_imports if additional_authorized_imports else []
         self.authorized_imports = sorted(set(BASE_BUILTIN_MODULES) | set(self.additional_authorized_imports))
         self.max_print_outputs_length = max_print_outputs_length
         self._use_structured_outputs_internally = use_structured_outputs_internally
+        self.live_render = live_render
         if use_structured_outputs_internally:
             prompt_templates = prompt_templates or yaml.safe_load(
                 importlib.resources.files("smolagents.prompts").joinpath("structured_code_agent.yaml").read_text()
@@ -1920,13 +1923,19 @@ class CodeAgent(MultiStepAgent):
                     **additional_args,
                 )
                 chat_message_stream_deltas: list[ChatMessageStreamDelta] = []
-                with Live("", console=self.logger.console, vertical_overflow="visible") as live:
+                if self.live_render:
+                    with Live("", console=self.logger.console, vertical_overflow="visible") as live:
+                        for event in output_stream:
+                            chat_message_stream_deltas.append(event)
+                            live.update(
+                                Markdown(agglomerate_stream_deltas(chat_message_stream_deltas).render_as_markdown())
+                            )
+                            yield event
+                else:
                     for event in output_stream:
                         chat_message_stream_deltas.append(event)
-                        live.update(
-                            Markdown(agglomerate_stream_deltas(chat_message_stream_deltas).render_as_markdown())
-                        )
                         yield event
+
                 chat_message = agglomerate_stream_deltas(chat_message_stream_deltas)
                 memory_step.model_output_message = chat_message
                 output_text = chat_message.content
