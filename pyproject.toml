@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "smolagents-async"
-version = "1.19.2"
+version = "1.19.3"
 description = "🤗 smolagents-async: a clone of smolagents which supports asyncio."
 authors = [
   { name="Aymeric Roucher", email="aymeric@hf.co" },
