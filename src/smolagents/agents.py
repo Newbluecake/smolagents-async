@@ -538,7 +538,7 @@ You have been provided with these additional arguments, that you can access usin
         run_start_time = time.time()
         # Outputs are returned only at the end. We only look at the last step.
 
-        steps = list(await self._arun_stream(task=self.task, max_steps=max_steps, images=images))
+        steps = [step async for step in self._arun_stream(task=self.task, max_steps=max_steps, images=images)]
         assert isinstance(steps[-1], FinalAnswerStep)
         output = steps[-1].output
 
