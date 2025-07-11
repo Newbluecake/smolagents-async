@@ -1758,10 +1758,15 @@ async def async_evaluate_listcomp(
                     new_state[elem.id] = value[idx]
             else:
                 new_state[generator.target.id] = value
-            if all(
-                await async_evaluate_ast(if_clause, new_state, static_tools, custom_tools, authorized_imports)
-                for if_clause in generator.ifs
-            ):
+            
+            ifs_results = []
+            for if_clause in generator.ifs:
+                ifs_results.append(
+                    await async_evaluate_ast(
+                        if_clause, new_state, static_tools, custom_tools, authorized_imports
+                    )
+                )
+            if all(ifs_results):
                 result.extend(await async_inner_evaluate(generators, index + 1, new_state))
         return result
 
