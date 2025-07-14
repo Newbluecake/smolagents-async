@@ -2481,7 +2481,10 @@ async def async_evaluate_ast(
         # Constant -> just return the value
         return expression.value
     elif isinstance(expression, ast.Tuple):
-        return tuple((await async_evaluate_ast(elt, *common_params) for elt in expression.elts))
+        result = []
+        for elt in expression.elts:
+            result.append(await async_evaluate_ast(elt, *common_params))
+        return tuple(result)
     elif isinstance(expression, (ast.ListComp, ast.GeneratorExp)):
         return await async_evaluate_listcomp(expression, *common_params)
     elif isinstance(expression, ast.DictComp):
@@ -2540,7 +2543,10 @@ async def async_evaluate_ast(
         return "".join([str(await async_evaluate_ast(v, *common_params)) for v in expression.values])
     elif isinstance(expression, ast.List):
         # List -> evaluate all elements
-        return [await async_evaluate_ast(elt, *common_params) for elt in expression.elts]
+        result = []
+        for elt in expression.elts:
+            result.append(await async_evaluate_ast(elt, *common_params))
+        return result
     elif isinstance(expression, ast.Name):
         # Name -> pick up the value in the state
         return await async_evaluate_name(expression, *common_params)
